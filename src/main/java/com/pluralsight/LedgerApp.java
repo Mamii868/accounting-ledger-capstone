@@ -2,6 +2,7 @@ package com.pluralsight;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -37,7 +38,7 @@ public class LedgerApp {
 
             System.out.println();
             switch (userInput.toLowerCase()) {
-                case "d" -> System.out.println("Coming Soon");
+                case "d" -> makeDeposit();
                 case "p" -> System.out.println("Coming Soon");
                 case "l" -> ledgerMenu();
                 case "x" -> appRunning = false;
@@ -272,5 +273,31 @@ public class LedgerApp {
             System.out.println("No Transactions Found. ");
         }
         System.out.println();
+    }
+
+    public static void makeDeposit() {
+        try {
+            System.out.println("Enter the description: ");
+            String transactionName = scanner.nextLine();
+            System.out.println("Enter who you are getting money from: ");
+            String transactionVendor = scanner.nextLine();
+            System.out.println("Enter the amount of money received: ");
+            double transactionAmount = scanner.nextDouble();
+
+            LocalDateTime now = LocalDateTime.now();
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
+
+            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, transactionAmount);
+
+            System.out.println("Saving transaction...");
+            transactionsArrayList.add(createdTransaction);
+            writeTransactionToFile(createdTransaction);
+            System.out.println("Transaction saved!");
+        } catch (Exception e) {
+            System.out.println("Error Making Deposit!");
+        }
+
     }
 }
