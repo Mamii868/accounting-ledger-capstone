@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Scanner;
 
 public class LedgerApp {
@@ -51,6 +52,8 @@ public class LedgerApp {
     }
 
     public static void ledgerMenu() {
+        transactionsArrayList.sort(Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed());
+
         try {
             boolean menuRunning = true;
             while (menuRunning) {
@@ -114,7 +117,7 @@ public class LedgerApp {
             FileWriter fileWriter = new FileWriter("src/main/resources/transactions.csv", true);
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 
-            bufferedWriter.write(transaction.getDate() + "|" + transaction.getTime() + "|" + transaction.getName() + "|" + transaction.getEntity() + "|" + transaction.getAmount());
+            bufferedWriter.write("\n" + transaction.getDate() + "|" + transaction.getTime() + "|" + transaction.getName() + "|" + transaction.getEntity() + "|" + transaction.getAmount());
 
             bufferedWriter.close();
         } catch (Exception e) {
@@ -277,19 +280,20 @@ public class LedgerApp {
 
     public static void makeDeposit() {
         try {
-            System.out.println("Enter the description: ");
+            System.out.print("Enter the description: ");
             String transactionName = scanner.nextLine();
-            System.out.println("Enter who you are getting money from: ");
+            System.out.print("Enter who you are getting money from: ");
             String transactionVendor = scanner.nextLine();
-            System.out.println("Enter the amount of money received: ");
+            System.out.print("Enter the amount of money received: ");
             double transactionAmount = scanner.nextDouble();
+            scanner.nextLine();
 
             LocalDateTime now = LocalDateTime.now();
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, (transactionAmount * -1));
+            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, Math.abs(transactionAmount));
 
             System.out.println("Saving transaction...");
             transactionsArrayList.add(createdTransaction);
@@ -300,21 +304,23 @@ public class LedgerApp {
         }
 
     }
+
     public static void makePayment() {
         try {
-            System.out.println("Enter the description: ");
+            System.out.print("Enter the description: ");
             String transactionName = scanner.nextLine();
-            System.out.println("Enter who you are sending money to: ");
+            System.out.print("Enter who you are sending money to: ");
             String transactionVendor = scanner.nextLine();
-            System.out.println("Enter the amount of money received: ");
+            System.out.print("Enter the amount of money received: ");
             double transactionAmount = scanner.nextDouble();
+            scanner.nextLine();
 
             LocalDateTime now = LocalDateTime.now();
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
 
-            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, Math.abs(transactionAmount));
+            Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, (transactionAmount * -1));
 
             System.out.println("Saving transaction...");
             transactionsArrayList.add(createdTransaction);
