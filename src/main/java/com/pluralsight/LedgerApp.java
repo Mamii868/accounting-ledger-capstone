@@ -1,5 +1,11 @@
 package com.pluralsight;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.InfoCmp;
+
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,8 +22,12 @@ public class LedgerApp {
 
     public static void main(String[] args) {
         try {
+//            Initialize the terminal and line reader
+            Terminal terminal = TerminalBuilder.builder().system(true).build();
+            LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).build();
+
             readTransactionFile();
-            mainMenu();
+            mainMenu(terminal, lineReader);
 
         } catch (Exception e) {
             System.out.println("An Error Occurred within the application. Exiting...");
@@ -25,30 +35,34 @@ public class LedgerApp {
         }
     }
 
-    public static void mainMenu() throws InterruptedException {
+    public static void mainMenu(Terminal terminal, LineReader lineReader) throws InterruptedException {
+
+//       Put terminal.writer in a separate variable to avoid writing it out 10000x
+        PrintWriter writer = terminal.writer();
         while (appRunning) {
-            System.out.println("=== Marc's Computer Store Ledger ===");
-            System.out.println("""
+            writer.println("=== Marc's Computer Store Ledger ===");
+            writer.println("""
                     Choose an option below:
                     Add (D)eposit
                     Make (P)ayment
                     (L)edger
                     E(X)it""");
-            System.out.print("Enter command: ");
+            writer.print("Enter command: ");
+            writer.flush();
             String userInput = scanner.nextLine();
 
-            System.out.println();
+            writer.println();
             switch (userInput.toLowerCase()) {
                 case "d" -> makeDeposit();
                 case "p" -> makePayment();
                 case "l" -> ledgerMenu();
                 case "x" -> appRunning = false;
-                default -> System.out.println("Enter a letter that matches the options!");
+                default -> writer.println("Enter a letter that matches the options!");
 
             }
             Thread.sleep(500);
         }
-        System.out.println("Goodbye!");
+        writer.println("Goodbye!");
     }
 
     public static void ledgerMenu() {
