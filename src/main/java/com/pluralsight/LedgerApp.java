@@ -24,7 +24,7 @@ public class LedgerApp {
         try {
 //            Initialize the terminal and line reader
             Terminal terminal = TerminalBuilder.builder().system(true).build();
-            LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).build();
+            LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).option(LineReader.Option.CASE_INSENSITIVE, true).build();
 
             readTransactionFile();
             mainMenu(terminal, lineReader);
