@@ -5,7 +5,6 @@ import org.jline.consoleui.prompt.PromptResultItemIF;
 import org.jline.consoleui.prompt.builder.PromptBuilder;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
-import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
@@ -56,7 +55,6 @@ public class LedgerApp {
                 terminal.flush();
 
                 printTitle(terminal, "Marc's Computer Store Ledger");
-                writer.println();
 
 //                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
                 if (timesLooped > 0) {
@@ -68,7 +66,7 @@ public class LedgerApp {
                 PromptBuilder builder = prompt.getPromptBuilder();
                 builder.createListPrompt()
                         .name("mainMenuOption")
-                        .message("Choose an option below:")
+                        .message("Choose an option:")
                         .newItem().text("Add Deposit").add()
                         .newItem().text("Make Payment").add()
                         .newItem().text("View Ledger").add()
@@ -96,14 +94,30 @@ public class LedgerApp {
     public static void ledgerMenu(Terminal terminal, LineReader lineReader) {
         transactionsArrayList.sort(Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed());
 
+        PrintWriter writer = terminal.writer();
         ConsolePrompt prompt = new ConsolePrompt(terminal);
+
+        int timesLooped = 0;
+//        Menu selection Prompt
         try {
             boolean menuRunning = true;
             while (menuRunning) {
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
+
+                printTitle(terminal, "Ledger Menu");
+
+//                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
+                if (timesLooped > 0) {
+                    writer.println();
+                }
+
+                terminal.flush();
+
                 PromptBuilder builder = prompt.getPromptBuilder();
                 builder.createListPrompt()
                         .name("ledgerMenuOption")
-                        .message("= Ledger menu =")
+                        .message("Choose an option: ")
                         .newItem().text("View All Entries").add()
                         .newItem().text("View Deposits").add()
                         .newItem().text("View Payments").add()
@@ -119,11 +133,79 @@ public class LedgerApp {
                     case "View Reports" -> reportsMenu(terminal, lineReader);
                     case "Back to Main Menu" -> menuRunning = false;
                 }
-                terminal.puts(InfoCmp.Capability.clear_screen);
-                terminal.flush();
+                timesLooped++;
             }
         } catch (Exception e) {
             System.out.println("Error within ledgerMenu");
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void reportsMenu(Terminal terminal, LineReader lineReader) {
+        try {
+            ConsolePrompt prompt = new ConsolePrompt(terminal);
+            PrintWriter writer = terminal.writer();
+
+            int timesLooped = 0;
+
+            boolean menuRunning = true;
+            while (menuRunning) {
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
+
+                printTitle(terminal, "Custom Reports");
+
+//                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
+                if (timesLooped > 0) {
+                    writer.println();
+                }
+
+                terminal.flush();
+                PromptBuilder builder = prompt.getPromptBuilder();
+                builder.createListPrompt()
+                        .name("reportsMenuOption")
+                        .message("Choose a report to view:")
+                        .newItem().text("Month To Date").add()
+                        .newItem().text("Previous Month").add()
+                        .newItem().text("Year To Date").add()
+                        .newItem().text("Previous Year").add()
+                        .newItem().text("Search by Vendor").add()
+                        .newItem().text("Back to Ledger Menu").add()
+                        .addPrompt();
+
+                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
+
+                switch (result.get("reportsMenuOption").getResult()) {
+                    case "Month To Date": {
+                        displayCustomReports("monthtd", "");
+                        break;
+                    }
+                    case "Previous Month": {
+                        displayCustomReports("prevmonth", "");
+                        break;
+                    }
+                    case "Year To Date": {
+                        displayCustomReports("yeartd", "");
+                        break;
+                    }
+                    case "Previous Year": {
+                        displayCustomReports("prevyear", "");
+                        break;
+                    }
+                    case "Search By Vendor": {
+                        String vendorInput = lineReader.readLine("Enter the vendor name: ");
+                        displayCustomReports("vendor", vendorInput);
+                    }
+                    case "Back to Ledger Menu": {
+                        menuRunning = false;
+                        break;
+                    }
+
+                }
+
+                timesLooped++;
+            }
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -215,61 +297,6 @@ public class LedgerApp {
 //        Spacing
         System.out.println();
 
-    }
-
-    public static void reportsMenu(Terminal terminal, LineReader lineReader) {
-        try {
-            ConsolePrompt prompt = new ConsolePrompt(terminal);
-            PrintWriter writer = terminal.writer();
-            boolean menuRunning = true;
-            while (menuRunning) {
-                PromptBuilder builder = prompt.getPromptBuilder();
-                builder.createListPrompt()
-                        .name("reportsMenuOption")
-                        .message("= Reports Menu =")
-                        .newItem().text("Month To Date").add()
-                        .newItem().text("Previous Month").add()
-                        .newItem().text("Year To Date").add()
-                        .newItem().text("Previous Year").add()
-                        .newItem().text("Search by Vendor").add()
-                        .newItem().text("Back to Ledger Menu").add()
-                        .addPrompt();
-
-                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
-
-                switch (result.get("reportsMenuOption").getResult()) {
-                    case "Month To Date": {
-                        displayCustomReports("monthtd", "");
-                        break;
-                    }
-                    case "Previous Month": {
-                        displayCustomReports("prevmonth", "");
-                        break;
-                    }
-                    case "Year To Date": {
-                        displayCustomReports("yeartd", "");
-                        break;
-                    }
-                    case "Previous Year": {
-                        displayCustomReports("prevyear", "");
-                        break;
-                    }
-                    case "Search By Vendor": {
-                        String vendorInput = lineReader.readLine("Enter the vendor name: ");
-                        displayCustomReports("vendor", vendorInput);
-                    }
-                    case "Back to Ledger Menu": {
-                        menuRunning = false;
-                        break;
-                    }
-
-                }
-                terminal.puts(InfoCmp.Capability.clear_screen);
-                terminal.flush();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     //    Filter transactions by either built-in filters or custom input
