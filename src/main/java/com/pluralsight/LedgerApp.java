@@ -8,6 +8,9 @@ import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp;
 
 import java.io.*;
@@ -52,7 +55,7 @@ public class LedgerApp {
                 terminal.puts(InfoCmp.Capability.clear_screen);
                 terminal.flush();
 
-                writer.println("=== Marc's Computer Store Ledger ===");
+                printTitle(terminal);
                 writer.println();
 
 //                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
@@ -60,7 +63,7 @@ public class LedgerApp {
                     writer.println();
                 }
 
-                writer.flush();
+                terminal.flush();
 
                 PromptBuilder builder = prompt.getPromptBuilder();
                 builder.createListPrompt()
@@ -123,6 +126,25 @@ public class LedgerApp {
             System.out.println("Error within ledgerMenu");
             throw new RuntimeException(e);
         }
+    }
+
+    public static void printTitle(Terminal terminal) {
+        AttributedStringBuilder builder = new AttributedStringBuilder();
+        PrintWriter writer = terminal.writer();
+
+
+
+        AttributedString title = builder
+                .style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
+                .append("====================================\n")
+                .append("||                                ||\n")
+                .append("||  Marc's Computer Store Ledger  ||\n")
+                .append("||                                ||\n")
+                .append("====================================\n")
+                .toAttributedString();
+
+        writer.println(title.toAnsi());
+        terminal.flush();
     }
 
     //    Reads Transactions from file if it exists, otherwise will only print file not found
