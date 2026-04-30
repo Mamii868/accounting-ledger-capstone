@@ -127,9 +127,9 @@ public class LedgerApp {
 
                 Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
                 switch (result.get("ledgerMenuOption").getResult()) {
-                    case "View All Entries" -> displayLedgerEntries("all");
-                    case "View Deposits" -> displayLedgerEntries("deposits");
-                    case "View Payments" -> displayLedgerEntries("payments");
+                    case "View All Entries" -> displayLedgerEntries(terminal, lineReader, "all");
+                    case "View Deposits" -> displayLedgerEntries(terminal, lineReader, "deposits");
+                    case "View Payments" -> displayLedgerEntries(terminal, lineReader, "payments");
                     case "View Reports" -> reportsMenu(terminal, lineReader);
                     case "Back to Main Menu" -> menuRunning = false;
                 }
@@ -222,6 +222,7 @@ public class LedgerApp {
                 .append("||  ").append(text).append("  ||\n")
                 .append("||").append(" ".repeat(text.length() + 4)).append("||").append("\n")
                 .append("=".repeat(text.length() + 8)).append("\n")
+                .style(AttributedStyle.DEFAULT)
                 .toAttributedString();
 
         writer.println(title.toAnsi());
@@ -270,32 +271,77 @@ public class LedgerApp {
         }
     }
 
-    public static void displayLedgerEntries(String filter) {
+    public static void displayLedgerEntries(Terminal terminal, LineReader lineReader, String filter) {
 
+        ArrayList<Transaction> transactionsToDisplay = new ArrayList<>();
+
+        int maxLedgerLength = 0;
 
         for (Transaction transaction : transactionsArrayList) {
+
+
             switch (filter.toLowerCase()) {
                 case "all": {
-                    System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                    transactionsToDisplay.add(transaction);
                     break;
                 }
                 case "deposits": {
                     if (transaction.getAmount() > 0) {
-                        System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                        transactionsToDisplay.add(transaction);
                     }
                     break;
                 }
                 case "payments": {
                     if (transaction.getAmount() < 0) {
-                        System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                        transactionsToDisplay.add(transaction);
                     }
                     break;
                 }
             }
 
         }
-//        Spacing
-        System.out.println();
+
+
+        PrintWriter writer = terminal.writer();
+
+        AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
+        for (Transaction transaction : transactionsToDisplay) {
+            String transactionString = transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity();
+
+//            Append each transaction to builder
+            transactionListBuilder.append(transaction.getDate())
+                    .append(" ")
+                    .append(transaction.getTime())
+                    .append(": ")
+                    .append(transaction.getName())
+                    .append(", ")
+                    .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
+                    .append("$")
+                    .append(Double.toString(transaction.getAmount()))
+                    .style(AttributedStyle.DEFAULT)
+                    .append(", Vendor: ")
+                    .append(transaction.getEntity())
+                    .append("\n");
+
+
+//            Find the longest transaction string for styling
+            if (transactionString.length() > maxLedgerLength) {
+                maxLedgerLength = transactionString.length();
+            }
+        }
+        AttributedString transactionList = transactionListBuilder.toAttributedString();
+
+        AttributedStringBuilder builder = new AttributedStringBuilder();
+        AttributedString title = builder
+                .append("=".repeat(maxLedgerLength + 8)).append("\n")
+                .append(transactionList)
+                .append("=".repeat(maxLedgerLength + 8)).append("\n")
+                .toAttributedString();
+
+        terminal.puts(InfoCmp.Capability.clear_screen);
+        writer.println(title.toAnsi());
+        lineReader.readLine("Press ENTER to continue...");
+        terminal.flush();
 
     }
 
