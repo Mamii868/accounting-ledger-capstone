@@ -1,23 +1,40 @@
 package com.pluralsight;
 
+import org.jline.consoleui.prompt.ConsolePrompt;
+import org.jline.consoleui.prompt.PromptResultItemIF;
+import org.jline.consoleui.prompt.builder.PromptBuilder;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+import org.jline.utils.InfoCmp;
+
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Scanner;
+import java.util.Map;
 
 public class LedgerApp {
-    static Scanner scanner = new Scanner(System.in);
     static boolean appRunning = true;
 
     static ArrayList<Transaction> transactionsArrayList = new ArrayList<>();
 
     public static void main(String[] args) {
         try {
+//            Initialize the terminal and line reader
+            Terminal terminal = TerminalBuilder.builder().system(true).provider("jni").build();
+            LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).option(LineReader.Option.CASE_INSENSITIVE, true).build();
+
+//            Add transactions from the file to the array for the app to use
             readTransactionFile();
-            mainMenu();
+
+            mainMenu(terminal, lineReader);
 
         } catch (Exception e) {
             System.out.println("An Error Occurred within the application. Exiting...");
@@ -25,63 +42,192 @@ public class LedgerApp {
         }
     }
 
-    public static void mainMenu() throws InterruptedException {
-        while (appRunning) {
-            System.out.println("=== Marc's Computer Store Ledger ===");
-            System.out.println("""
-                    Choose an option below:
-                    Add (D)eposit
-                    Make (P)ayment
-                    (L)edger
-                    E(X)it""");
-            System.out.print("Enter command: ");
-            String userInput = scanner.nextLine();
+    public static void mainMenu(Terminal terminal, LineReader lineReader) {
+        ConsolePrompt prompt = new ConsolePrompt(terminal);
+//        Put terminal.writer in a separate variable to avoid writing it out 10000x
+        PrintWriter writer = terminal.writer();
 
-            System.out.println();
-            switch (userInput.toLowerCase()) {
-                case "d" -> makeDeposit();
-                case "p" -> makePayment();
-                case "l" -> ledgerMenu();
-                case "x" -> appRunning = false;
-                default -> System.out.println("Enter a letter that matches the options!");
+        int timesLooped = 0;
+//        Menu selection Prompt
+        try {
+            while (appRunning) {
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
 
+                printTitle(terminal, "Marc's Computer Store Ledger");
+
+//                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
+                if (timesLooped > 0) {
+                    writer.println();
+                }
+
+                terminal.flush();
+
+                PromptBuilder builder = prompt.getPromptBuilder();
+                builder.createListPrompt()
+                        .name("mainMenuOption")
+                        .message("Choose an option:")
+                        .newItem().text("Add Deposit").add()
+                        .newItem().text("Make Payment").add()
+                        .newItem().text("View Ledger").add()
+                        .newItem().text("Exit Program").add()
+                        .addPrompt();
+
+
+                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
+
+                switch (result.get("mainMenuOption").getResult()) {
+                    case "Add Deposit" -> makeDeposit(terminal, lineReader);
+                    case "Make Payment" -> makePayment(terminal, lineReader);
+                    case "View Ledger" -> ledgerMenu(terminal, lineReader);
+                    case "Exit Program" -> appRunning = false;
+
+                }
+                timesLooped++;
             }
-            Thread.sleep(500);
+            writer.println("Goodbye!");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        System.out.println("Goodbye!");
     }
 
-    public static void ledgerMenu() {
+    public static void ledgerMenu(Terminal terminal, LineReader lineReader) {
         transactionsArrayList.sort(Comparator.comparing(Transaction::getDate).thenComparing(Transaction::getTime).reversed());
 
+        PrintWriter writer = terminal.writer();
+        ConsolePrompt prompt = new ConsolePrompt(terminal);
+
+        int timesLooped = 0;
+//        Menu selection Prompt
         try {
             boolean menuRunning = true;
             while (menuRunning) {
-                System.out.println("= Ledger menu =");
-                System.out.println("""
-                        Choose an option below:
-                        (A)ll Entries
-                        (D)eposits
-                        (P)ayments
-                        (R)eports
-                        E(X)it to Main Menu""");
-                System.out.print("Enter command: ");
-                String userInput = scanner.nextLine();
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
 
-                System.out.println();
-                switch (userInput.toLowerCase()) {
-                    case "a" -> displayLedgerEntries("all");
-                    case "d" -> displayLedgerEntries("deposits");
-                    case "p" -> displayLedgerEntries("payments");
-                    case "r" -> reportsMenu();
-                    case "x" -> menuRunning = false;
-                    default -> System.out.println("Enter a letter that matches the options!");
+                printTitle(terminal, "Ledger Menu");
+
+//                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
+                if (timesLooped > 0) {
+                    writer.println();
                 }
+
+                terminal.flush();
+
+                PromptBuilder builder = prompt.getPromptBuilder();
+                builder.createListPrompt()
+                        .name("ledgerMenuOption")
+                        .message("Choose an option: ")
+                        .newItem().text("View All Entries").add()
+                        .newItem().text("View Deposits").add()
+                        .newItem().text("View Payments").add()
+                        .newItem().text("View Reports").add()
+                        .newItem().text("Back to Main Menu").add()
+                        .addPrompt();
+
+                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
+                switch (result.get("ledgerMenuOption").getResult()) {
+                    case "View All Entries" -> displayLedgerEntries(terminal, lineReader, "all");
+                    case "View Deposits" -> displayLedgerEntries(terminal, lineReader, "deposits");
+                    case "View Payments" -> displayLedgerEntries(terminal, lineReader, "payments");
+                    case "View Reports" -> reportsMenu(terminal, lineReader);
+                    case "Back to Main Menu" -> menuRunning = false;
+                }
+                timesLooped++;
             }
         } catch (Exception e) {
             System.out.println("Error within ledgerMenu");
             throw new RuntimeException(e);
         }
+    }
+
+    public static void reportsMenu(Terminal terminal, LineReader lineReader) {
+        try {
+            ConsolePrompt prompt = new ConsolePrompt(terminal);
+            PrintWriter writer = terminal.writer();
+
+            int timesLooped = 0;
+
+            boolean menuRunning = true;
+            while (menuRunning) {
+                terminal.puts(InfoCmp.Capability.clear_screen);
+                terminal.flush();
+
+                printTitle(terminal, "Custom Reports");
+
+//                This is purely to fix the spacing being overwritten by the prompt when the loop loops back
+                if (timesLooped > 0) {
+                    writer.println();
+                }
+
+                terminal.flush();
+                PromptBuilder builder = prompt.getPromptBuilder();
+                builder.createListPrompt()
+                        .name("reportsMenuOption")
+                        .message("Choose a report to view:")
+                        .newItem().text("Month To Date").add()
+                        .newItem().text("Previous Month").add()
+                        .newItem().text("Year To Date").add()
+                        .newItem().text("Previous Year").add()
+                        .newItem().text("Search by Vendor").add()
+                        .newItem().text("Back to Ledger Menu").add()
+                        .addPrompt();
+
+                Map<String, PromptResultItemIF> result = prompt.prompt(builder.build());
+
+                switch (result.get("reportsMenuOption").getResult()) {
+                    case "Month To Date": {
+                        displayCustomReports("monthtd", "", terminal, lineReader);
+                        break;
+                    }
+                    case "Previous Month": {
+                        displayCustomReports("prevmonth", "", terminal, lineReader);
+                        break;
+                    }
+                    case "Year To Date": {
+                        displayCustomReports("yeartd", "", terminal, lineReader);
+                        break;
+                    }
+                    case "Previous Year": {
+                        displayCustomReports("prevyear", "", terminal, lineReader);
+                        break;
+                    }
+                    case "Search by Vendor": {
+                        String vendorInput = lineReader.readLine("Enter the vendor name: ");
+                        displayCustomReports("vendor", vendorInput, terminal, lineReader);
+                        break;
+                    }
+                    case "Back to Ledger Menu": {
+                        menuRunning = false;
+                        break;
+                    }
+
+                }
+
+                timesLooped++;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void printTitle(Terminal terminal, String text) {
+        AttributedStringBuilder builder = new AttributedStringBuilder();
+        PrintWriter writer = terminal.writer();
+
+//        Dynamically creates the top/bottom lines and spaces for the title based on how long the input text is
+        AttributedString title = builder
+                .style(AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
+                .append("=".repeat(text.length() + 8)).append("\n")
+                .append("||").append(" ".repeat(text.length() + 4)).append("||").append("\n")
+                .append("||  ").append(text).append("  ||\n")
+                .append("||").append(" ".repeat(text.length() + 4)).append("||").append("\n")
+                .append("=".repeat(text.length() + 8)).append("\n")
+                .style(AttributedStyle.DEFAULT)
+                .toAttributedString();
+
+        writer.println(title.toAnsi());
+        terminal.flush();
     }
 
     //    Reads Transactions from file if it exists, otherwise will only print file not found
@@ -126,92 +272,116 @@ public class LedgerApp {
         }
     }
 
-    public static void displayLedgerEntries(String filter) {
+    public static void displayLedgerEntries(Terminal terminal, LineReader lineReader, String filter) {
 
+        ArrayList<Transaction> transactionsToDisplay = new ArrayList<>();
+
+        int maxDateLength = "DATE".length() + 10;
+        int maxTimeLength = "TIME".length() + 8;
+        int maxDescriptionLength = "DESC.".length();
+        int maxVendorLength = "VENDOR".length();
+        int maxAmountLength = "AMOUNT".length();
 
         for (Transaction transaction : transactionsArrayList) {
+
+
             switch (filter.toLowerCase()) {
                 case "all": {
-                    System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                    transactionsToDisplay.add(transaction);
                     break;
                 }
                 case "deposits": {
                     if (transaction.getAmount() > 0) {
-                        System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                        transactionsToDisplay.add(transaction);
                     }
                     break;
                 }
                 case "payments": {
                     if (transaction.getAmount() < 0) {
-                        System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+                        transactionsToDisplay.add(transaction);
                     }
                     break;
                 }
             }
 
         }
-//        Spacing
-        System.out.println();
 
-    }
 
-    public static void reportsMenu() {
-        try {
-            boolean menuRunning = true;
-            while (menuRunning) {
-                System.out.println("= Reports menu =");
-                System.out.println("""
-                        Choose an option below:
-                        1. Month To Date
-                        2. Previous Month
-                        3. Year To Date
-                        4. Previous Year
-                        5. Search by Vendor
-                        0. Exit to Ledger Menu""");
-                System.out.print("Enter command: ");
-                int userInput = scanner.nextInt();
-                scanner.nextLine();
-
-                switch (userInput) {
-                    case 1: {
-                        displayCustomReports("monthtd", "");
-                        break;
-                    }
-                    case 2: {
-                        displayCustomReports("prevmonth", "");
-                        break;
-                    }
-                    case 3: {
-                        displayCustomReports("yeartd", "");
-                        break;
-                    }
-                    case 4: {
-                        displayCustomReports("prevyear", "");
-                        break;
-                    }
-                    case 5: {
-                        System.out.print("Enter the vendor name: ");
-                        String vendorInput = scanner.nextLine();
-                        displayCustomReports("vendor", vendorInput);
-                    }
-                    case 0: {
-                        menuRunning = false;
-                        break;
-                    }
-
-                }
+        for (Transaction transaction : transactionsToDisplay) {
+            //            Find the longest transaction string for styling
+            if (transaction.getName().length() > maxDescriptionLength) {
+                maxDescriptionLength = transaction.getName().length();
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (transaction.getEntity().length() > maxVendorLength) {
+                maxVendorLength = transaction.getEntity().length();
+            }
+            if (String.format("%.2f", transaction.getAmount()).length() > maxAmountLength) {
+                maxAmountLength = String.format("%.2f", transaction.getAmount()).length();
+            }
         }
+
+        PrintWriter writer = terminal.writer();
+
+        AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
+        if (transactionsToDisplay.isEmpty()) {
+            transactionListBuilder.append("\nNo Transactions Found!\n\n");
+        } else {
+            for (Transaction transaction : transactionsToDisplay) {
+
+//            Append each transaction to builder with correct formatting for the table (the math is very precise per-column)
+                transactionListBuilder
+                        .append("|| ")
+                        .append(addSpacing(transaction.getDate(), maxDateLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getTime(), maxTimeLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getName(), maxDescriptionLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getEntity(), maxVendorLength))
+                        .append(" || ")
+                        .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
+                        .append(addSpacing(String.format("%.2f", transaction.getAmount()), maxAmountLength))
+                        .style(AttributedStyle.DEFAULT)
+                        .append(" ||\n");
+            }
+        }
+
+
+        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + 22;
+
+        AttributedString transactionList = transactionListBuilder.toAttributedString();
+
+//        Builds the table header and adds the transaction list
+        AttributedStringBuilder builder = new AttributedStringBuilder();
+        AttributedString title = builder
+                .append("=".repeat(maxLedgerLength)).append("\n")
+                .append("|| ").append(addSpacing("DATE", maxDateLength)).append(" |")
+                .append("| ").append(addSpacing("TIME", maxTimeLength)).append(" |")
+                .append("| ").append(addSpacing("DESC.", maxDescriptionLength)).append(" |")
+                .append("| ").append(addSpacing("VENDOR", maxVendorLength)).append(" |")
+                .append("| ").append(addSpacing("AMOUNT", maxAmountLength)).append(" ||\n")
+                .append(transactionList)
+                .append("=".repeat(maxLedgerLength)).append("\n")
+                .toAttributedString();
+
+        terminal.puts(InfoCmp.Capability.clear_screen);
+        writer.println(title.toAnsi());
+        lineReader.readLine("Press ENTER to continue...");
+        terminal.flush();
+
     }
 
     //    Filter transactions by either built-in filters or custom input
-    public static void displayCustomReports(String type, String searchParam) {
+    public static void displayCustomReports(String type, String searchParam, Terminal terminal, LineReader lineReader) {
         ArrayList<Transaction> transactionsToDisplay = new ArrayList<>();
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+        int maxDateLength = "DATE".length() + 10;
+        int maxTimeLength = "TIME".length() + 8;
+        int maxDescriptionLength = "DESC.".length();
+        int maxVendorLength = "VENDOR".length();
+        int maxAmountLength = "AMOUNT".length();
 
         switch (type) {
             case "monthtd": {
@@ -263,30 +433,90 @@ public class LedgerApp {
                         transactionsToDisplay.add(transaction);
                     }
                 }
+                break;
             }
         }
 
-        System.out.println();
-//        Print all transactions found with filters
-        if (!transactionsToDisplay.isEmpty()) {
-            for (Transaction transaction : transactionsToDisplay) {
-                System.out.println(transaction.getDate() + " " + transaction.getTime() + ": " + transaction.getName() + ", $" + transaction.getAmount() + ", Vendor: " + transaction.getEntity());
+        for (Transaction transaction : transactionsToDisplay) {
+            //            Find the longest transaction string for styling
+            if (transaction.getName().length() > maxDescriptionLength) {
+                maxDescriptionLength = transaction.getName().length();
             }
-        } else {
-            System.out.println("No Transactions Found. ");
+            if (transaction.getEntity().length() > maxVendorLength) {
+                maxVendorLength = transaction.getEntity().length();
+            }
+            if (String.format("%.2f", transaction.getAmount()).length() > maxAmountLength) {
+                maxAmountLength = String.format("%.2f", transaction.getAmount()).length();
+            }
         }
-        System.out.println();
+
+        PrintWriter writer = terminal.writer();
+
+        AttributedStringBuilder transactionListBuilder = new AttributedStringBuilder();
+        if (transactionsToDisplay.isEmpty()) {
+            transactionListBuilder.append("\nNo Transactions Found!\n\n");
+        } else {
+            for (Transaction transaction : transactionsToDisplay) {
+
+//            Append each transaction to builder with correct formatting for the table (the math is very precise per-column)
+                transactionListBuilder
+                        .append("|| ")
+                        .append(addSpacing(transaction.getDate(), maxDateLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getTime(), maxTimeLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getName(), maxDescriptionLength))
+                        .append(" || ")
+                        .append(addSpacing(transaction.getEntity(), maxVendorLength))
+                        .append(" || ")
+                        .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
+                        .append(addSpacing(String.format("%.2f", transaction.getAmount()), maxAmountLength))
+                        .style(AttributedStyle.DEFAULT)
+                        .append(" ||\n");
+            }
+        }
+
+
+        int maxLedgerLength = maxAmountLength + maxDateLength + maxDescriptionLength + maxTimeLength + maxVendorLength + 22;
+
+        AttributedString transactionList = transactionListBuilder.toAttributedString();
+
+//        Builds the table header and adds the transaction list
+        AttributedStringBuilder builder = new AttributedStringBuilder();
+        AttributedString title = builder
+                .append("=".repeat(maxLedgerLength)).append("\n")
+                .append("|| ").append(addSpacing("DATE", maxDateLength)).append(" |")
+                .append("| ").append(addSpacing("TIME", maxTimeLength)).append(" |")
+                .append("| ").append(addSpacing("DESC.", maxDescriptionLength)).append(" |")
+                .append("| ").append(addSpacing("VENDOR", maxVendorLength)).append(" |")
+                .append("| ").append(addSpacing("AMOUNT", maxAmountLength)).append(" ||\n")
+                .append(transactionList)
+                .append("=".repeat(maxLedgerLength)).append("\n")
+                .toAttributedString();
+
+        terminal.puts(InfoCmp.Capability.clear_screen);
+        writer.println(title.toAnsi());
+        lineReader.readLine("Press ENTER to continue...");
+        terminal.flush();
     }
 
-    public static void makeDeposit() {
+    public static void makeDeposit(Terminal terminal, LineReader lineReader) {
         try {
-            System.out.print("Enter the description: ");
-            String transactionName = scanner.nextLine();
-            System.out.print("Enter who you are getting money from: ");
-            String transactionVendor = scanner.nextLine();
-            System.out.print("Enter the amount of money received: ");
-            double transactionAmount = scanner.nextDouble();
-            scanner.nextLine();
+            PrintWriter writer = terminal.writer();
+            String transactionName = lineReader.readLine("Enter the description: ");
+            String transactionVendor = lineReader.readLine("Enter who you are getting money from: ");
+            double transactionAmount;
+
+            while (true) {
+                try {
+                    transactionAmount = Double.parseDouble(lineReader.readLine("Enter the amount of money received: "));
+                    break;
+                } catch (Exception e) {
+                    writer.println("Enter a valid number!");
+                    writer.flush();
+                }
+            }
+
 
             LocalDateTime now = LocalDateTime.now();
 
@@ -295,41 +525,61 @@ public class LedgerApp {
 
             Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, Math.abs(transactionAmount));
 
-            System.out.println("Saving transaction...");
+            writer.println("Saving Transaction...");
+            writer.flush();
             transactionsArrayList.add(createdTransaction);
             writeTransactionToFile(createdTransaction);
-            System.out.println("Transaction saved!");
+            writer.println("Transaction Saved!");
+            writer.flush();
+            Thread.sleep(1000);
         } catch (Exception e) {
             System.out.println("Error Making Deposit!");
         }
 
     }
 
-    public static void makePayment() {
+    public static void makePayment(Terminal terminal, LineReader lineReader) {
         try {
-            System.out.print("Enter the description: ");
-            String transactionName = scanner.nextLine();
-            System.out.print("Enter who you are sending money to: ");
-            String transactionVendor = scanner.nextLine();
-            System.out.print("Enter the amount of money received: ");
-            double transactionAmount = scanner.nextDouble();
-            scanner.nextLine();
-
+            PrintWriter writer = terminal.writer();
+            String transactionName = lineReader.readLine("Enter the description: ");
+            String transactionVendor = lineReader.readLine("Enter who you are giving money to: ");
+            double transactionAmount;
+            while (true) {
+                try {
+                    transactionAmount = Double.parseDouble(lineReader.readLine("Enter the amount of money paid: "));
+                    break;
+                } catch (Exception e) {
+                    writer.println("Enter a valid number!");
+                    writer.flush();
+                }
+            }
             LocalDateTime now = LocalDateTime.now();
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH-mm-ss");
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
             Transaction createdTransaction = new Transaction(dateFormatter.format(now), timeFormatter.format(now), transactionName, transactionVendor, (transactionAmount * -1));
 
-            System.out.println("Saving transaction...");
+            writer.println("Saving Transaction...");
+            writer.flush();
             transactionsArrayList.add(createdTransaction);
             writeTransactionToFile(createdTransaction);
-            System.out.println("Transaction saved!");
+            writer.println("Transaction Saved!");
+            writer.flush();
+            Thread.sleep(1000);
         } catch (Exception e) {
-            System.out.println("Error Making Deposit!");
+            System.out.println("Error Making Payment!");
         }
 
+    }
+
+    //    Stops the repeats from going negative
+    public static String repeater(int amount, String string) {
+        return string.repeat(Math.max(0, amount));
+    }
+
+    public static String addSpacing(String string, int length) {
+        return string + repeater(length - string.length(), " ");
     }
 
 }
