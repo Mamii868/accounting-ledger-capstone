@@ -192,7 +192,7 @@ public class LedgerApp {
                         displayCustomReports("prevyear", "", terminal, lineReader);
                         break;
                     }
-                    case "Search By Vendor": {
+                    case "Search by Vendor": {
                         String vendorInput = lineReader.readLine("Enter the vendor name: ");
                         displayCustomReports("vendor", vendorInput, terminal, lineReader);
                     }
@@ -315,7 +315,7 @@ public class LedgerApp {
                 maxVendorLength = transaction.getEntity().length();
             }
             if (Double.toString(transaction.getAmount()).length() > maxAmountLength) {
-                maxAmountLength = Double.toString(transaction.getAmount()).length();
+                maxAmountLength = String.format("%.2f", transaction.getAmount()).length();
             }
         }
 
@@ -339,7 +339,7 @@ public class LedgerApp {
                         .append(addSpacing(transaction.getEntity(), maxVendorLength))
                         .append(" || ")
                         .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
-                        .append(addSpacing(Double.toString(transaction.getAmount()), maxAmountLength))
+                        .append(addSpacing(String.format("%.2f", transaction.getAmount()), maxAmountLength))
                         .style(AttributedStyle.DEFAULT)
                         .append(" ||\n");
             }
@@ -356,7 +356,7 @@ public class LedgerApp {
                 .append("=".repeat(maxLedgerLength)).append("\n")
                 .append("|| ").append(addSpacing("DATE", maxDateLength)).append(" |")
                 .append("| ").append(addSpacing("TIME", maxTimeLength)).append(" |")
-                .append("| ").append(addSpacing("DESC", maxDescriptionLength)).append(" |")
+                .append("| ").append(addSpacing("DESC.", maxDescriptionLength)).append(" |")
                 .append("| ").append(addSpacing("VENDOR", maxVendorLength)).append(" |")
                 .append("| ").append(addSpacing("AMOUNT", maxAmountLength)).append(" ||\n")
                 .append(transactionList)
@@ -432,6 +432,7 @@ public class LedgerApp {
                         transactionsToDisplay.add(transaction);
                     }
                 }
+                break;
             }
         }
 
@@ -443,8 +444,8 @@ public class LedgerApp {
             if (transaction.getEntity().length() > maxVendorLength) {
                 maxVendorLength = transaction.getEntity().length();
             }
-            if (Double.toString(transaction.getAmount()).length() > maxAmountLength) {
-                maxAmountLength = Double.toString(transaction.getAmount()).length();
+            if (String.format("%.2f", transaction.getAmount()).length() > maxAmountLength) {
+                maxAmountLength = String.format("%.2f", transaction.getAmount()).length();
             }
         }
 
@@ -468,7 +469,7 @@ public class LedgerApp {
                         .append(addSpacing(transaction.getEntity(), maxVendorLength))
                         .append(" || ")
                         .style(AttributedStyle.BOLD.foreground(transaction.getAmount() > 0 ? AttributedStyle.GREEN : AttributedStyle.RED))
-                        .append(addSpacing(Double.toString(transaction.getAmount()), maxAmountLength))
+                        .append(addSpacing(String.format("%.2f", transaction.getAmount()), maxAmountLength))
                         .style(AttributedStyle.DEFAULT)
                         .append(" ||\n");
             }
@@ -485,7 +486,7 @@ public class LedgerApp {
                 .append("=".repeat(maxLedgerLength)).append("\n")
                 .append("|| ").append(addSpacing("DATE", maxDateLength)).append(" |")
                 .append("| ").append(addSpacing("TIME", maxTimeLength)).append(" |")
-                .append("| ").append(addSpacing("DESC", maxDescriptionLength)).append(" |")
+                .append("| ").append(addSpacing("DESC.", maxDescriptionLength)).append(" |")
                 .append("| ").append(addSpacing("VENDOR", maxVendorLength)).append(" |")
                 .append("| ").append(addSpacing("AMOUNT", maxAmountLength)).append(" ||\n")
                 .append(transactionList)
