@@ -195,6 +195,7 @@ public class LedgerApp {
                     case "Search by Vendor": {
                         String vendorInput = lineReader.readLine("Enter the vendor name: ");
                         displayCustomReports("vendor", vendorInput, terminal, lineReader);
+                        break;
                     }
                     case "Back to Ledger Menu": {
                         menuRunning = false;
