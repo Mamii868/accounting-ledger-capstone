@@ -314,7 +314,7 @@ public class LedgerApp {
             if (transaction.getEntity().length() > maxVendorLength) {
                 maxVendorLength = transaction.getEntity().length();
             }
-            if (Double.toString(transaction.getAmount()).length() > maxAmountLength) {
+            if (String.format("%.2f", transaction.getAmount()).length() > maxAmountLength) {
                 maxAmountLength = String.format("%.2f", transaction.getAmount()).length();
             }
         }
