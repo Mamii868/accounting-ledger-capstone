@@ -1,14 +1,14 @@
-# Accounting Ledger Capstone
+# Accounting Ledger
 
-This is a simple Java console app for tracking ledger transactions for a small business.
+A Java console app for tracking ledger transactions for a small business.
 
 ## What the application does
 
 The app lets you:
 - add deposits
 - record payments
-- view the full ledger
-- filter entries by deposits or payments
+- view the account ledger
+- filter the ledger entries by deposits or payments
 - run built-in reports, including month-to-date, previous month, year-to-date, previous year, and vendor searches
 
 Transactions are loaded from and saved to `src/main/resources/transactions.csv`.
@@ -28,18 +28,16 @@ Install these tools on the machine before starting the app:
    cd /path/to/accounting-ledger-capstone
    ```
 
-3. Start the app from the repository root:
+3. Compile the application:
+   ```bash
+   mvn clean compile
+   ```
+   
+4. Start the app from the repository root:
 
    ```bash
    mvn exec:java -Dexec.mainClass=com.pluralsight.LedgerApp
    ```
 
 The app opens an interactive menu in the terminal where you can add transactions and view reports.
-
-## Optional build check
-
-If you want to confirm the project builds successfully first, run:
-
-```bash
-mvn test
-```
+Use the arrow and enter keys to navigate through the app.
