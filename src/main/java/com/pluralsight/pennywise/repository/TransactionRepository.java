@@ -2,6 +2,13 @@ package com.pluralsight.pennywise.repository;
 
 import com.pluralsight.pennywise.models.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
+import java.util.List;
+
+@Repository
+public interface TransactionRepository
+        extends JpaRepository<Transaction, Integer> {
+
+    List<Transaction> findByUserId(int userId);
 }
