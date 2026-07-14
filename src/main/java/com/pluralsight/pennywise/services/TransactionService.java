@@ -1,7 +1,7 @@
-package com.pluralsight.pennywise.service;
+package com.pluralsight.pennywise.services;
 
 import com.pluralsight.pennywise.models.Transaction;
-import com.pluralsight.pennywise.repository.TransactionRepository;
+import com.pluralsight.pennywise.repositories.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

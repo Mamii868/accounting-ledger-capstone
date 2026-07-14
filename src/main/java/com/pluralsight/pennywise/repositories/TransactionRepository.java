@@ -1,4 +1,4 @@
-package com.pluralsight.pennywise.repository;
+package com.pluralsight.pennywise.repositories;
 
 import com.pluralsight.pennywise.models.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
