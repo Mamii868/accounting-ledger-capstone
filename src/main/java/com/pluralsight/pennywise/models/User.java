@@ -2,18 +2,20 @@ package com.pluralsight.pennywise.models;
 
 import jakarta.persistence.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private int id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "userID")
+    private UUID id;
 
-    @Column(name = "first_name")
+    @Column(name = "firstname")
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "lastname")
     private String lastName;
 
     @Column(name = "username")
@@ -27,7 +29,7 @@ public class User {
 
     public User() {}
 
-    public User(int id, String firstName, String lastName, String username, String password, String email) {
+    public User(UUID id, String firstName, String lastName, String username, String password, String email) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -36,11 +38,11 @@ public class User {
         this.email = email;
     }
 
-    public int getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
