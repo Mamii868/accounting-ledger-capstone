@@ -1,6 +1,8 @@
 package com.pluralsight.pennywise.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 
@@ -12,9 +14,13 @@ public class Transaction {
     @Column(name = "transaction_id")
     private int id;
 
+    @NotBlank
+    @Size(max = 255)
     @Column(name = "description")
     private String description;
 
+    @NotBlank
+    @Size(max = 100)
     @Column(name = "vendor")
     private String vendor;
 

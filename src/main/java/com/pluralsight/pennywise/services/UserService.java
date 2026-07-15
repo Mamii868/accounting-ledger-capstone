@@ -2,6 +2,7 @@ package com.pluralsight.pennywise.services;
 
 import com.pluralsight.pennywise.models.User;
 import com.pluralsight.pennywise.repositories.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -28,7 +30,7 @@ public class UserService {
 
     // CREATE
     public User createUser(User user) {
-        // password is saved exactly as it was typed in
+        user.setPassword(encoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -65,9 +67,10 @@ public class UserService {
 
         User user = foundUser.get();
 
-        if (user.getPassword().equals(password)) {
+        if (encoder.matches(password, user.getPassword())) {
             return user;
         }
+
         // password didn't match
         return null;
     }

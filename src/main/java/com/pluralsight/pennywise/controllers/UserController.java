@@ -2,6 +2,7 @@ package com.pluralsight.pennywise.controllers;
 
 import com.pluralsight.pennywise.models.User;
 import com.pluralsight.pennywise.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class UserController {
     //  CREATE a new user
     // POST /users
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         try {
             // stop duplicate usernames before saving
             if (userService.usernameExists(user.getUsername())) {
@@ -70,7 +71,7 @@ public class UserController {
     // EDIT an existing user
     // PUT /users/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable UUID id, @Valid @RequestBody User user) {
         try {
             User updatedUser = userService.updateUser(id, user);
 

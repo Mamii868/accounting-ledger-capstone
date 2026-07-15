@@ -1,12 +1,12 @@
 package com.pluralsight.pennywise.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pluralsight.pennywise.models.authentication.Authority;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -17,36 +17,39 @@ public class User {
     @Column(name = "userID")
     private UUID id;
 
+    @NotBlank
+    @Size(max = 50)
     @Column(name = "firstname")
     private String firstName;
 
+    @NotBlank
+    @Size(max = 50)
     @Column(name = "lastname")
     private String lastName;
 
+    @NotBlank
+    @Size(min = 2, max = 30)
+    @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "Username may only contain letters, numbers, dots, underscores, and hyphens")
     @Column(name = "username")
     private String username;
 
+    @NotBlank
+    @Size(min = 8, max = 100)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "password")
     private String password;
 
+    @NotBlank
+    @Email
+    @Size(max = 100)
     @Column(name = "email")
     private String email;
 
     @Column(name = "role")
     private String role;
 
-    @Transient
-    private Set<Authority> authorities = new HashSet<>();
-
-    @JsonIgnore
-    @Transient
-    private boolean activated;
-
     public User() {
-        this.activated = true;
     }
-
 
     public User(UUID id, String firstName, String lastName, String username, String password, String email) {
         this.id = id;
@@ -55,20 +58,6 @@ public class User {
         this.username = username;
         this.password = password;
         this.email = email;
-        this.activated = true;
-    }
-
-    @PostLoad
-    private void onLoad() {
-        this.activated = true;
-        if (role != null) {
-            this.authorities = new HashSet<>();
-            String[] roles = role.split(",");
-            for (String r : roles) {
-                String authority = r.trim().contains("ROLE_") ? r.trim() : "ROLE_" + r.trim();
-                this.authorities.add(new Authority(authority));
-            }
-        }
     }
 
     public UUID getId() {

@@ -2,6 +2,7 @@ package com.pluralsight.pennywise.controllers;
 
 import com.pluralsight.pennywise.models.Transaction;
 import com.pluralsight.pennywise.services.TransactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +46,7 @@ public class TransactionController {
 
     // Create a new transaction
     @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody Transaction transaction) {
         Transaction createdTransaction = transactionService.createTransaction(transaction);
         return new ResponseEntity<>(createdTransaction, HttpStatus.CREATED);
     }
@@ -54,7 +55,7 @@ public class TransactionController {
     @PutMapping("/{id}")
     public ResponseEntity<Transaction> updateTransaction(
             @PathVariable int id,
-            @RequestBody Transaction transaction) {
+            @Valid @RequestBody Transaction transaction) {
 
         Transaction updatedTransaction = transactionService.updateTransaction(id, transaction);
 
