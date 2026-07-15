@@ -9,13 +9,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+
+        this.userService = userService;
+
+    }
 
     //  GET all users
     // GET /users
@@ -32,7 +39,7 @@ public class UserController {
     // GET one user by id
     // GET /users/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable int id) {
+    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
         try {
             Optional<User> foundUser = userService.getUserById(id);
 
@@ -63,7 +70,7 @@ public class UserController {
     // EDIT an existing user
     // PUT /users/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable int id, @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody User user) {
         try {
             User updatedUser = userService.updateUser(id, user);
 

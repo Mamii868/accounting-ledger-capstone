@@ -1,7 +1,12 @@
 package com.pluralsight.pennywise.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pluralsight.pennywise.models.authentication.Authority;
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -21,6 +26,7 @@ public class User {
     @Column(name = "username")
     private String username;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "password")
     private String password;
 
@@ -30,7 +36,17 @@ public class User {
     @Column(name = "role")
     private String role;
 
-    public User() {}
+    @Transient
+    private Set<Authority> authorities = new HashSet<>();
+
+    @JsonIgnore
+    @Transient
+    private boolean activated;
+
+    public User() {
+        this.activated = true;
+    }
+
 
     public User(UUID id, String firstName, String lastName, String username, String password, String email) {
         this.id = id;
@@ -39,6 +55,20 @@ public class User {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.activated = true;
+    }
+
+    @PostLoad
+    private void onLoad() {
+        this.activated = true;
+        if (role != null) {
+            this.authorities = new HashSet<>();
+            String[] roles = role.split(",");
+            for (String r : roles) {
+                String authority = r.trim().contains("ROLE_") ? r.trim() : "ROLE_" + r.trim();
+                this.authorities.add(new Authority(authority));
+            }
+        }
     }
 
     public UUID getId() {
