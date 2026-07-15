@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/transactions")
@@ -40,7 +41,7 @@ public class TransactionController {
 
     // Get all transactions for a specific user
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Transaction>> getTransactionsByUserId(@PathVariable int userId) {
+    public ResponseEntity<List<Transaction>> getTransactionsByUserId(@PathVariable UUID userId) {
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
     }
 

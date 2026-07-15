@@ -1,10 +1,14 @@
 package com.pluralsight.pennywise.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "transactions")
@@ -24,19 +28,23 @@ public class Transaction {
     @Column(name = "vendor")
     private String vendor;
 
-    @Column(name = "amount")
-    private double amount;
+    @NotNull
+    @Digits(integer = 8, fraction = 2)
+    @Column(name = "amount", precision = 10, scale = 2)
+    private BigDecimal amount;
 
     @Column(name = "userID")
-    private int userId;
+    private UUID userId;
 
     @Column(name = "timestamp")
     private LocalDateTime createdAt;
+    @Column( name = "reference", unique = true, updatable = false)
+    private String reference;
 
     public Transaction() {
     }
 
-    public Transaction(int id, String description, String vendor, double amount, int userId, LocalDateTime createdAt) {
+    public Transaction(int id, String description, String vendor, BigDecimal amount, UUID userId, LocalDateTime createdAt) {
         this.id = id;
         this.description = description;
         this.vendor = vendor;
@@ -69,19 +77,19 @@ public class Transaction {
         this.vendor = vendor;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
-    public int getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
 
@@ -91,5 +99,13 @@ public class Transaction {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 }

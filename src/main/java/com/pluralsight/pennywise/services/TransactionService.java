@@ -4,9 +4,12 @@ import com.pluralsight.pennywise.models.Transaction;
 import com.pluralsight.pennywise.repositories.TransactionRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class TransactionService {
@@ -25,12 +28,17 @@ public class TransactionService {
         return transactionRepository.findById(id).orElse(null);
     }
 
-    public List<Transaction> getTransactionsByUserId(int userId) {
+    public List<Transaction> getTransactionsByUserId(UUID userId) {
         return transactionRepository.findByUserId(userId);
     }
 
     public Transaction createTransaction(Transaction transaction) {
         transaction.setId(0);
+
+        // always server-generated, never trust client input for this
+        String ref = "TXN-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
+                + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        transaction.setReference(ref);
 
         if (transaction.getCreatedAt() == null) {
             transaction.setCreatedAt(LocalDateTime.now());
