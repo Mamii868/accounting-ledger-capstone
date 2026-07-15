@@ -36,11 +36,8 @@ public class UserController {
         try {
             Optional<User> foundUser = userService.getUserById(id);
 
-            if (foundUser.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
+            return foundUser.map(user -> ResponseEntity.status(HttpStatus.OK).body(user)).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 
-            return ResponseEntity.status(HttpStatus.OK).body(foundUser.get());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

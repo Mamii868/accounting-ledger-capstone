@@ -2,7 +2,6 @@ package com.pluralsight.pennywise.services;
 
 import com.pluralsight.pennywise.models.User;
 import com.pluralsight.pennywise.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,8 +10,11 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     //  GET
     public List<User> getAllUsers() {
@@ -31,7 +33,7 @@ public class UserService {
 
     // checks if a username is already taken — used before creating a user
     public boolean usernameExists(String username) {
-        return userRepository.findByUsername(username).isPresent();
+        return userRepository.existsByUsername(username);
     }
 
     // EDIT
