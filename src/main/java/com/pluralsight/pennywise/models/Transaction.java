@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "transaction_id")
+    @Column(name = "transactionID")
     private int id;
 
     @NotBlank
@@ -27,10 +27,10 @@ public class Transaction {
     @Column(name = "amount")
     private double amount;
 
-    @Column(name = "user_id")
+    @Column(name = "userID")
     private int userId;
 
-    @Column(name = "created_at")
+    @Column(name = "timestamp")
     private LocalDateTime createdAt;
 
     public Transaction() {
