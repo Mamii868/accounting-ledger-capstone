@@ -27,16 +27,18 @@ CREATE TABLE `users` (
   UNIQUE KEY `username_UNIQUE` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Inserting 5 rows into users
+-- Inserting 6 rows into users
 -- Insert batch #1
 INSERT INTO users (userID, firstname, lastname, email, username, password, role) VALUES
 (0x2c68ee4d3faa41928b62c8d261861b84, 'Takudzwa', 'Mucherengi', 't@email.com', 'tk3', '$2a$10$cS1oyYMav6ZRIiRGcx4PzeMemWPQqIUwhDF3Wp94Mxxlqd2iscWOe', 'CUSTOMER'),
 (0x7eb955ae8014439da171be5c2371665c, 'Takudzwa', 'Mucherengi', 'tmucherengi@my.yearupunited.org', 'tk1', '$2a$10$qlLFF35PsBT.OXd0NejCZOTNI/tUsUNZyfn7uPa/hVUQ0kUMZN.v.', 'CUSTOMER'),
+(0x9473e0b2f7b645869dd8539c2b0b1450, 'Takudzwa', 'Mucherengi', 'admin@pennywise.com', 'sysadmin', '$2a$10$cyvY0BBuFRPd8TsrJib3K.xBKA936eiUSz7Ud2xUn6qMEau58k2qi', 'ADMIN'),
 (0x9d8b4e89f53f475f8d2e63a46b6fc7b3, 'Takudzwa', 'Mucherengi', 't@email', 'tk4', '$2a$10$r5LGOQsGS39asOFIhZmgeed3LZK4/QvCWyJ0IaBPQAompr1pTpA2.', 'CUSTOMER'),
 (0xa6a5ef39128f40d0ae52f3b79527b42f, 'Takudzwa', 'Mucherengi', 'tmucherengi@my.yearupunited.org', 'tk2', '$2a$10$WGTX5G5oa7Z9nMk1O7ylTOQLvv3P01RQLSi83j7BUUx5w0TVCBgpm', 'CUSTOMER'),
 (0xd24374dfcc6945dd84465cf8e81d83a6, 'Takudzwa', 'Mucherengi', 'tmucherengi@my.yearupunited.org', 'tk', '$2a$10$iEpUjMpQrGSApSkCeV11z.zt4.i9fQR4fvrmaRMvcOKR4SL4N80zO', 'EMPLOYEE');
 
 -- END TABLE users
+
 
 -- BEGIN TABLE transactions
 DROP TABLE IF EXISTS transactions;
