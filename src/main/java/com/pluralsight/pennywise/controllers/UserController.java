@@ -63,6 +63,9 @@ public class UserController {
                     .body(Map.of("error", "Username '" + user.getUsername() + "' is already taken"));
         }
 
+        // clients may not choose their own role; admins are promoted directly in the DB
+        user.setRole("USER");
+
         User createdUser = userService.createUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
@@ -99,6 +102,7 @@ public class UserController {
 
             // remember who is logged in for subsequent requests
             session.setAttribute("userId", user.getId());
+            session.setAttribute("role", user.getRole());
 
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } catch (Exception e) {

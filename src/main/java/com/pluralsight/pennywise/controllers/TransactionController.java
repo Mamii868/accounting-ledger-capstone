@@ -22,6 +22,10 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
+    private boolean isAdmin(HttpSession session) {
+        return "ADMIN".equals(session.getAttribute("role"));
+    }
+
     // Get the logged-in user's transactions
     @GetMapping
     public ResponseEntity<List<Transaction>> getMyTransactions(HttpSession session) {
@@ -32,6 +36,16 @@ public class TransactionController {
         }
 
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
+    }
+
+    // ADMIN ONLY: get every transaction in the system
+    @GetMapping("/all")
+    public ResponseEntity<List<Transaction>> getAllTransactions(HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(transactionService.getAllTransactions());
     }
 
     // Get transaction by ID
@@ -46,9 +60,14 @@ public class TransactionController {
         return ResponseEntity.ok(transaction);
     }
 
-    // Get all transactions for a specific user
+    // ADMIN ONLY: get all transactions for a specific user
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Transaction>> getTransactionsByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<List<Transaction>> getTransactionsByUserId(@PathVariable UUID userId,
+                                                                     HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
     }
 
