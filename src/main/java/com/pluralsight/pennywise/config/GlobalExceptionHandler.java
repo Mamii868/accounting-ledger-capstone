@@ -1,4 +1,4 @@
-package com.pluralsight.pennywise.controllers;
+package com.pluralsight.pennywise.config;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
