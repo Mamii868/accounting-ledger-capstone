@@ -18,12 +18,14 @@ public class User {
     private UUID id;
 
     @NotBlank
-    @Size(max = 50)
+    @Size(max = 45)
+    @Pattern(regexp = "^[^<>]*$", message = "Name may not contain < or >")
     @Column(name = "firstname")
     private String firstName;
 
     @NotBlank
-    @Size(max = 50)
+    @Size(max = 45)
+    @Pattern(regexp = "^[^<>]*$", message = "Name may not contain < or >")
     @Column(name = "lastname")
     private String lastName;
 
