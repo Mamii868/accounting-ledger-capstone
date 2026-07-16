@@ -90,7 +90,7 @@ public class UserController {
 
     //  LOGIN
     // POST /users/login
-    // reuses the User model for the request body instead of a separate class -
+    //reuses the User model for the request body instead of a separate class -
     // only username and password are actually used from it
     @PostMapping("/login")
     public ResponseEntity<User> login(@RequestBody User loginUser, HttpSession session) {
