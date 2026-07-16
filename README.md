@@ -4,12 +4,22 @@ A Java console app for tracking ledger transactions for a small business.
 
 ## What the application does
 
-The app lets you:
-- add deposits
-- record payments
-- view the account ledger
-- filter the ledger entries by deposits or payments
-- run built-in reports, including month-to-date, previous month, year-to-date, previous year, and vendor searches
+The application lets users:
+
+- Record deposits
+- Record payments
+- View the account ledger
+- Search and filter transactions
+- Generate financial reports, including:
+  - Month-to-Date
+  - Previous Month
+  - Year-to-Date
+  - Previous Year
+  - Vendor Search
+- Manage user and transaction records
+- Store financial data in a MySQL relational database
+
+The application uses a MySQL database (`pennywisedb.sql`) to securely store user and transaction information.
 
 Transactions are loaded from and saved to `src/main/resources/transactions.csv`.
 
@@ -41,6 +51,34 @@ Install these tools on the machine before starting the app:
 
 The app opens an interactive menu in the terminal where you can add transactions and view reports.
 Use the arrow and enter keys to navigate through the app.
+## Troubleshooting
+
+### Application will not compile
+
+Run:
+
+```bash
+mvn clean install
+```
+
+to restore all required dependencies.
+
+### Database connection issues
+
+Verify that:
+
+- MySQL is running.
+- The `pennywisedb` database has been imported successfully.
+- Your database connection settings are correct.
+
+### Missing dependencies
+
+Refresh the Maven project and run:
+
+```bash
+mvn clean install
+```
+
 
 ## FAQ
 
