@@ -2,6 +2,7 @@ package com.pluralsight.pennywise.controllers;
 
 import com.pluralsight.pennywise.models.User;
 import com.pluralsight.pennywise.services.UserService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,18 +56,15 @@ public class UserController {
     //  CREATE a new user
     // POST /users
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        try {
-            // stop duplicate usernames before saving
-            if (userService.usernameExists(user.getUsername())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
-
-            User createdUser = userService.createUser(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    public ResponseEntity<?> createUser(@Valid @RequestBody User user) {
+        // stop duplicate usernames before saving
+        if (userService.usernameExists(user.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Username '" + user.getUsername() + "' is already taken"));
         }
+
+        User createdUser = userService.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     // EDIT an existing user
@@ -90,7 +89,7 @@ public class UserController {
     // reuses the User model for the request body instead of a separate class -
     // only username and password are actually used from it
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody User loginUser) {
+    public ResponseEntity<User> login(@RequestBody User loginUser, HttpSession session) {
         try {
             User user = userService.login(loginUser.getUsername(), loginUser.getPassword());
 
@@ -98,9 +97,20 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
+            // remember who is logged in for subsequent requests
+            session.setAttribute("userId", user.getId());
+
             return ResponseEntity.status(HttpStatus.OK).body(user);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    // LOGOUT
+    // POST /users/logout
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.noContent().build();
     }
 }

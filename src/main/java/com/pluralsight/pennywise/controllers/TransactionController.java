@@ -2,6 +2,7 @@ package com.pluralsight.pennywise.controllers;
 
 import com.pluralsight.pennywise.models.Transaction;
 import com.pluralsight.pennywise.services.TransactionService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,16 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    // Get all transactions
+    // Get the logged-in user's transactions
     @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
-        return ResponseEntity.ok(transactionService.getAllTransactions());
+    public ResponseEntity<List<Transaction>> getMyTransactions(HttpSession session) {
+        UUID userId = (UUID) session.getAttribute("userId");
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
     }
 
     // Get transaction by ID
@@ -45,9 +52,20 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
     }
 
-    // Create a new transaction
+    // Create a new transaction for the logged-in user
     @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody Transaction transaction,
+                                                         HttpSession session) {
+        UUID userId = (UUID) session.getAttribute("userId");
+
+        if (userId == null) {
+            // not logged in
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // always taken from the session, never from the request body
+        transaction.setUserId(userId);
+
         Transaction createdTransaction = transactionService.createTransaction(transaction);
         return new ResponseEntity<>(createdTransaction, HttpStatus.CREATED);
     }
